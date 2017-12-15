@@ -1,6 +1,7 @@
 module CommonParsers where 
 
-import Control.Monad (MonadPlus(..), liftM)
+import Control.Applicative 
+import Control.Monad (liftM, ap)
 
 -- | A generic data type for dealing with parsers.
 --   Actually, this is an idiom, being present in several Haskell parsers.
@@ -12,19 +13,19 @@ import Control.Monad (MonadPlus(..), liftM)
 data ParserResult a = Success a | Fail String
  deriving (Read, Show, Eq, Ord)
 
+instance Functor ParserResult where 
+ fmap = liftM
+
+instance Applicative ParserResult where
+  pure  = return
+  (<*>) = ap
+
 instance Monad ParserResult where 
  return = Success
  fail = Fail
  Success a >>= f = f a
  Fail s    >>= f = Fail s
 
-instance Functor ParserResult where 
- fmap = liftM
-
-instance MonadPlus ParserResult where
-  mzero = Fail "Err.mzero"
-  mplus (Fail _) y = y
-  mplus x _ = x
 
 isSuccess :: ParserResult a -> Bool
 isSuccess (Success _) = True
